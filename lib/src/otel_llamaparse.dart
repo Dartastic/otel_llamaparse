@@ -2,7 +2,6 @@
 // Copyright 2025-2026 Mindful Software LLC d/b/a Dartastic.io, All rights reserved.
 
 import 'package:dartastic_opentelemetry/dartastic_opentelemetry.dart';
-import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 
 import 'otel_llamaparse_suppression.dart';
 
@@ -52,49 +51,63 @@ Future<T> tracedLlamaParse<T>({
   final t = tracer ?? OTel.tracerProvider().getTracer('otel_llamaparse');
   final span = t.startSpan('llamaparse $operation', kind: SpanKind.client);
   try {
-    span.setStringAttribute('rpc.system', 'llamaparse');
-    span.setStringAttribute('gen_ai.system', 'llamaparse');
+    span.addAttributes(
+        OTel.attributes([OTel.attributeString('rpc.system', 'llamaparse')]));
+    span.addAttributes(
+        OTel.attributes([OTel.attributeString('gen_ai.system', 'llamaparse')]));
     final r = await invoke();
     final res = r.result;
     if (res != null) {
       if (res.jobId != null) {
-        span.setStringAttribute('llamaparse.job.id', res.jobId!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('llamaparse.job.id', res.jobId!)]));
       }
       if (res.fileName != null) {
-        span.setStringAttribute('file.name', res.fileName!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('file.name', res.fileName!)]));
       }
       if (res.fileSize != null) {
-        span.setIntAttribute('file.size', res.fileSize!);
+        span.addAttributes(
+            OTel.attributes([OTel.attributeInt('file.size', res.fileSize!)]));
       }
       if (res.pageCount != null) {
-        span.setIntAttribute('llamaparse.page_count', res.pageCount!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeInt('llamaparse.page_count', res.pageCount!)]));
       }
       if (res.parsingMode != null) {
-        span.setStringAttribute('llamaparse.parsing_mode', res.parsingMode!);
+        span.addAttributes(OTel.attributes([
+          OTel.attributeString('llamaparse.parsing_mode', res.parsingMode!)
+        ]));
       }
       if (res.language != null) {
-        span.setStringAttribute('llamaparse.language', res.language!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('llamaparse.language', res.language!)]));
       }
       if (res.resultType != null) {
-        span.setStringAttribute('llamaparse.result_type', res.resultType!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('llamaparse.result_type', res.resultType!)]));
       }
       if (res.durationMs != null) {
-        span.setIntAttribute('llamaparse.duration', res.durationMs!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeInt('llamaparse.duration', res.durationMs!)]));
       }
       if (res.statusCode != null) {
-        span.setIntAttribute('http.response.status_code', res.statusCode!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeInt('http.response.status_code', res.statusCode!)]));
       }
       if (res.errorCode != null) {
-        span.setStringAttribute('llamaparse.error.code', res.errorCode!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('llamaparse.error.code', res.errorCode!)]));
       }
-      final fail =
-          res.errorCode != null ||
+      final fail = res.errorCode != null ||
           (res.statusCode != null && res.statusCode! >= 400);
       if (fail) {
-        span.setStringAttribute(
-          ErrorResource.errorType.key,
-          res.errorCode ?? 'llamaparse.error',
-        );
+        span.addAttributes(OTel.attributes([
+          OTel.attributeString(
+            ErrorResource.errorType.key,
+            res.errorCode ?? 'llamaparse.error',
+          )
+        ]));
         span.setStatus(SpanStatusCode.Error, res.errorMessage);
       }
     }
